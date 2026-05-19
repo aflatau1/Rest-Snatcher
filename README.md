@@ -1,3 +1,3 @@
 # Rest-Snatcher
 
-https://aflatau1.github.io/Resy-Snatcher/
+Base link: https://aflatau1.github.io/Resy-Snatcher/
