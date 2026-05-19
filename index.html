@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NYC Reservation Hunter — Land the Hardest Tables</title>
+<style>
+  :root{
+    --bg:#0d0b08;
+    --panel:#16130d;
+    --panel-2:#1f1a11;
+    --line:#2e2719;
+    --gold:#d8b46a;
+    --gold-soft:#e9d3a0;
+    --text:#f3ead7;
+    --muted:#9c917a;
+    --green:#7bbf6a;
+    --red:#e07a6a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 70% -10%, #1c1710 0%, var(--bg) 60%);
+    color:var(--text);
+    font:16px/1.6 "Helvetica Neue",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:80px;
+  }
+  a{color:var(--gold-soft)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  header.hero{
+    text-align:center;
+    padding:74px 22px 54px;
+    border-bottom:1px solid var(--line);
+  }
+  .kicker{
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    font-size:12px;
+    color:var(--gold);
+    margin-bottom:18px;
+  }
+  h1{
+    font-size:clamp(34px,6vw,60px);
+    line-height:1.05;
+    font-weight:800;
+    letter-spacing:-.5px;
+  }
+  h1 .em{color:var(--gold)}
+  .sub{max-width:620px;margin:20px auto 0;color:var(--muted);font-size:18px}
+  section{padding:54px 0;border-bottom:1px solid var(--line)}
+  h2{
+    font-size:13px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:8px;
+  }
+  .h2-big{font-size:30px;font-weight:800;letter-spacing:-.4px;color:var(--text);margin-bottom:26px}
+  .grid{display:grid;gap:18px}
+  .playbook{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .card{
+    background:linear-gradient(180deg,var(--panel) 0%,var(--panel-2) 100%);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px;
+  }
+  .card .num{
+    font-size:13px;color:var(--gold);font-weight:700;letter-spacing:.1em;margin-bottom:10px;
+  }
+  .card h3{font-size:18px;margin-bottom:8px}
+  .card p{color:var(--muted);font-size:14.5px}
+
+  /* table / restaurant list */
+  .toolbar{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px;align-items:center}
+  .toolbar input,.toolbar select{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:11px 14px;border-radius:10px;font-size:14px;outline:none;
+  }
+  .toolbar input{flex:1;min-width:200px}
+  .toolbar input:focus,.toolbar select:focus{border-color:var(--gold)}
+  .resto{
+    display:grid;
+    grid-template-columns:1.6fr 1fr 1.1fr auto;
+    gap:16px;align-items:center;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px 20px;
+    margin-bottom:12px;
+  }
+  .resto .name{font-size:18px;font-weight:700}
+  .resto .meta{color:var(--muted);font-size:13px;margin-top:3px}
+  .pill{
+    display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    padding:4px 9px;border-radius:999px;border:1px solid var(--line);
+    color:var(--gold-soft);background:#1a150d;margin-right:6px;margin-top:6px;
+  }
+  .difficulty{font-size:13px}
+  .dots{letter-spacing:2px;color:var(--gold);font-size:15px}
+  .drop{font-size:13px;color:var(--text)}
+  .drop small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  button{
+    font:inherit;cursor:pointer;border:none;border-radius:10px;
+  }
+  .btn{
+    background:var(--gold);color:#1a1409;font-weight:700;padding:11px 16px;font-size:14px;
+    transition:transform .08s ease,filter .15s ease;white-space:nowrap;
+  }
+  .btn:hover{filter:brightness(1.07)}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent;color:var(--gold-soft);border:1px solid var(--line)}
+  .btn.sm{padding:8px 12px;font-size:13px}
+
+  /* reminders */
+  .reminder-box{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;align-items:end}
+  .field label{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  .field input,.field select{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:12px 14px;border-radius:10px;font-size:14px;outline:none;
+  }
+  .field input:focus,.field select:focus{border-color:var(--gold)}
+  #reminderList{margin-top:24px;display:grid;gap:12px}
+  .rem{
+    background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);
+    border-radius:12px;padding:16px 18px;
+  }
+  .rem-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .rem-ck{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .rem-ck[hidden]{display:none}
+  .ck-toggle{background:transparent;color:var(--gold-soft);border:1px solid var(--line);padding:8px 12px;font-size:13px;border-radius:10px}
+  .ck-toggle:hover{border-color:var(--gold)}
+  .rem .when{font-size:13px;color:var(--muted)}
+  .rem .cd{font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+  .rem.fired{border-left-color:var(--green);opacity:.7}
+  .rem .x{background:transparent;color:var(--muted);font-size:18px;padding:4px 10px}
+  .rem .x:hover{color:var(--red)}
+  .rem-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .clock{
+    display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center;
+    background:linear-gradient(180deg,#16130d,#1f1a11);
+    border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:26px;
+  }
+  .clock-label{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+  .clock-time{
+    font-size:clamp(36px,7vw,52px);font-weight:800;color:var(--gold);
+    font-variant-numeric:tabular-nums;letter-spacing:1px;line-height:1.1;margin-top:6px;
+  }
+  .clock-date{font-size:13px;color:var(--muted);margin-top:4px}
+  .clock-side{text-align:right;min-width:240px;flex:1}
+  .clock-offset{font-size:14px;color:var(--text)}
+  .clock-offset b{color:var(--gold-soft)}
+  .clock-offset.ok b{color:var(--green)}
+  .clock-offset.warn b{color:var(--red)}
+  .clock-status{font-size:12px;color:var(--muted);margin:6px 0 12px}
+  .clock-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+  .clock-actions a{text-decoration:none;display:inline-block}
+  @media(max-width:680px){.clock-side{text-align:left}.clock-actions{justify-content:flex-start}}
+  .checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .ck-group{
+    background:linear-gradient(180deg,var(--panel) 0%,var(--panel-2) 100%);
+    border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+  }
+  .ck-group h3{font-size:15px;color:var(--gold);margin-bottom:14px;letter-spacing:.04em}
+  .ck-item{display:flex;gap:12px;align-items:flex-start;padding:9px 0;cursor:pointer;border-bottom:1px solid #221c12}
+  .ck-item:last-child{border-bottom:none}
+  .ck-item input{
+    appearance:none;-webkit-appearance:none;flex:none;width:20px;height:20px;margin-top:1px;
+    border:1.5px solid var(--line);border-radius:6px;background:var(--panel-2);
+    cursor:pointer;position:relative;transition:.12s;
+  }
+  .ck-item input:checked{background:var(--gold);border-color:var(--gold)}
+  .ck-item input:checked::after{
+    content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:#1a1409;font-size:13px;font-weight:900;
+  }
+  .ck-item span{font-size:14.5px;color:var(--text);transition:.12s}
+  .ck-item input:checked + span{color:var(--muted);text-decoration:line-through}
+  .ck-bar{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+  .ck-track{flex:1;min-width:180px;height:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .ck-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-soft));transition:width .25s ease}
+  .ck-pct{font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;font-size:14px}
+  .note{font-size:13px;color:var(--muted);margin-top:14px}
+  .status{font-size:13px;padding:8px 0;color:var(--muted);min-height:22px}
+  footer{padding:40px 22px;text-align:center;color:var(--muted);font-size:13px}
+  @media(max-width:760px){
+    .resto{grid-template-columns:1fr;}
+    .resto .actcell{justify-self:start}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="kicker">The NYC Reservation Hunter</div>
+  <h1>How to land the <span class="em">hardest tables</span><br>in New York City</h1>
+  <p class="sub">The hardest reservations in the city aren't won at dinner — they're won the second the booking window opens. Here's the playbook, the drop calendar, and a reminder system so you never miss a release.</p>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2>The Playbook</h2>
+  <div class="h2-big">Eight tactics that actually work</div>
+  <div class="grid playbook">
+    <div class="card"><div class="num">01</div><h3>Know the exact drop</h3><p>Most tough rooms release a fixed number of days out (often 14, 28, or 30) at a precise time — frequently midnight or 10:00 AM ET. Booking is a race measured in seconds, not minutes.</p></div>
+    <div class="card"><div class="num">02</div><h3>Be logged in & loaded early</h3><p>Open Resy/Tock 60 seconds before the drop, payment and profile saved, party size pre-selected. Refresh at T-minus 5 seconds, not after.</p></div>
+    <div class="card"><div class="num">03</div><h3>Go off-peak</h3><p>5:00 PM and 9:45 PM on a Tuesday clear far faster than 7:30 PM Saturday. Solo and 2-tops have radically better odds than 4+.</p></div>
+    <div class="card"><div class="num">04</div><h3>Two devices, two windows</h3><p>Phone app and desktop browser hitting the same drop. Whichever confirms first wins; release the other immediately.</p></div>
+    <div class="card"><div class="num">05</div><h3>Notify lists & waitlists</h3><p>Turn on Resy Notify and Tock waitlists. Cancellations flood back 24–48h before service and on rainy days.</p></div>
+    <div class="card"><div class="num">06</div><h3>Walk in & sit at the bar</h3><p>Many "impossible" rooms hold the bar and counter for walk-ins. Arrive at open, give a name, get a drink nearby.</p></div>
+    <div class="card"><div class="num">07</div><h3>Be a regular elsewhere in the group</h3><p>Hospitality groups (Major Food, Quality Branded, Frenchette) reward loyalty. A relationship at one room opens others.</p></div>
+    <div class="card"><div class="num">08</div><h3>Set a reminder for the drop</h3><p>The single highest-leverage move: a calendar alarm minutes before the window opens. Build yours below.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>The Drop Calendar</h2>
+  <div class="h2-big">Where & when the toughest tables release</div>
+  <div class="toolbar">
+    <input id="search" type="text" placeholder="Search restaurant, cuisine, neighborhood…">
+    <select id="platform">
+      <option value="">All platforms</option>
+      <option>Resy</option>
+      <option>Tock</option>
+      <option>OpenTable</option>
+      <option>SevenRooms</option>
+      <option>Phone</option>
+    </select>
+    <select id="sort">
+      <option value="diff">Sort: Hardest first</option>
+      <option value="name">Sort: Name (A–Z)</option>
+    </select>
+  </div>
+  <div id="restoList"></div>
+  <p class="note">Booking windows and release times change often and vary by party size and season. Treat these as starting points and confirm on the venue's booking page before relying on a reminder.</p>
+</section>
+
+<section>
+  <h2>Reminders</h2>
+  <div class="h2-big">Never miss a reservation launch</div>
+  <p style="color:var(--muted);max-width:640px;margin-bottom:24px">Pick a restaurant (or enter your own), set when the booking window opens, and how early you want to be warned. This page will alert you in-browser, and you can add it to any calendar via an <strong>.ics</strong> download.</p>
+
+  <div class="clock" id="clock">
+    <div class="clock-main">
+      <div class="clock-label">Atomic-synced time · America/New_York</div>
+      <div class="clock-time" id="clockTime">--:--:--</div>
+      <div class="clock-date" id="clockDate">syncing…</div>
+    </div>
+    <div class="clock-side">
+      <div class="clock-offset" id="clockOffset">Device clock offset: <b>checking…</b></div>
+      <div class="clock-status" id="clockStatus">Contacting time server…</div>
+      <div class="clock-actions">
+        <button class="btn ghost sm" id="resync">↻ Re-sync</button>
+        <a class="btn ghost sm" href="https://time.gov" target="_blank" rel="noopener">Open time.gov ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="reminder-box">
+    <div class="field">
+      <label>Restaurant</label>
+      <select id="rRestaurant"></select>
+    </div>
+    <div class="field">
+      <label>Booking window opens</label>
+      <input id="rDateTime" type="datetime-local">
+    </div>
+    <div class="field">
+      <label>Warn me</label>
+      <select id="rLead">
+        <option value="2">2 minutes before</option>
+        <option value="5" selected>5 minutes before</option>
+        <option value="10">10 minutes before</option>
+        <option value="30">30 minutes before</option>
+        <option value="60">1 hour before</option>
+        <option value="1440">1 day before</option>
+      </select>
+    </div>
+    <div class="field">
+      <button class="btn" id="addReminder">Set reminder</button>
+    </div>
+  </div>
+  <div class="status" id="status"></div>
+
+  <div class="rem-actions">
+    <button class="btn ghost sm" id="exportAll">⤓ Export all to calendar (.ics)</button>
+    <button class="btn ghost sm" id="clearFired">Clear fired reminders</button>
+  </div>
+  <div id="reminderList"></div>
+  <p class="note">Reminders are stored only in this browser (localStorage). Browser alerts need this tab open at fire time — the .ics download works in any calendar app even when the page is closed.</p>
+</section>
+
+</div>
+
+<footer>
+  Built for hunters of the impossible table · Not affiliated with Resy, Tock, OpenTable or any venue · Verify all booking times before depending on them.
+</footer>
+
+<script>
+/* ---------- Restaurant drop data (approximate — verify before relying) ---------- */
+const RESTAURANTS = [
+  {name:"Tatiana by Kwame Onwuachi", area:"Lincoln Center", cuisine:"Afro-Caribbean American", platform:"Resy", advance:30, time:"12:00 AM ET", diff:5, note:"30 days out, drops at midnight. Among the hardest in the city."},
+  {name:"4 Charles Prime Rib", area:"West Village", cuisine:"Steakhouse", platform:"Resy", advance:30, time:"10:00 AM ET", diff:5, note:"Tiny room. Notify list essential; bar walk-ins possible."},
+  {name:"Carbone", area:"Greenwich Village", cuisine:"Italian-American", platform:"Resy", advance:30, time:"10:00 AM ET", diff:5, note:"Major Food Group. Off-peak & weeknights clear fastest."},
+  {name:"Rao's", area:"East Harlem", cuisine:"Italian", platform:"Phone", advance:0, time:"By relationship", diff:5, note:"Tables effectively owned by regulars. Famously near-impossible."},
+  {name:"Don Angie", area:"West Village", cuisine:"Italian-American", platform:"Resy", advance:30, time:"10:00 AM ET", diff:4, note:"30 days out at 10 AM. Lasagna for two is the move."},
+  {name:"Tatiana — bar seats", area:"Lincoln Center", cuisine:"Afro-Caribbean American", platform:"Resy", advance:30, time:"12:00 AM ET", diff:4, note:"Solo / 2-top bar far easier than dining room."},
+  {name:"Torrisi", area:"Nolita", cuisine:"Italian-American", platform:"Resy", advance:30, time:"10:00 AM ET", diff:4, note:"MFG flagship revival; weekday lunch is the soft spot."},
+  {name:"Sushi Noz", area:"Upper East Side", cuisine:"Edomae Sushi", platform:"Tock", advance:60, time:"Monthly release", diff:5, note:"Prepaid omakase; full month opens at once and sells out."},
+  {name:"I Sodi", area:"West Village", cuisine:"Tuscan", platform:"Resy", advance:30, time:"10:00 AM ET", diff:4, note:"Small. The Negroni and the lasagna are non-negotiable."},
+  {name:"Lilia", area:"Williamsburg", cuisine:"Italian", platform:"Resy", advance:30, time:"10:00 AM ET", diff:4, note:"Missy Robbins. Cancellations reliably reappear 24–48h out."},
+  {name:"Misi", area:"Williamsburg", cuisine:"Italian / Pasta", platform:"Resy", advance:30, time:"10:00 AM ET", diff:3, note:"Sister to Lilia; slightly more attainable early seatings."},
+  {name:"Rezdôra", area:"Flatiron", cuisine:"Emilia-Romagna", platform:"Resy", advance:30, time:"9:00 AM ET", diff:4, note:"Pasta tasting. Bar walk-ins held nightly."},
+  {name:"Semma", area:"West Village", cuisine:"South Indian", platform:"Resy", advance:30, time:"10:00 AM ET", diff:5, note:"Michelin-starred; one of the toughest in the Village."},
+  {name:"Le Bernardin", area:"Midtown", cuisine:"French Seafood", platform:"OpenTable", advance:30, time:"12:00 AM ET", diff:4, note:"Prime times go instantly; lunch is the back door."},
+  {name:"Per Se", area:"Columbus Circle", cuisine:"French Tasting", platform:"Tock", advance:60, time:"Monthly, ~10:00 AM ET", diff:4, note:"Prepaid; full month released; salon walk-in à la carte."},
+  {name:"Sushi Nakazawa", area:"West Village", cuisine:"Omakase", platform:"SevenRooms", advance:30, time:"Varies", diff:3, note:"Counter vs. dining room; counter is the prize."},
+  {name:"Frenchette", area:"Tribeca", cuisine:"French Bistro", platform:"Resy", advance:30, time:"10:00 AM ET", diff:3, note:"Bar seating walk-in friendly most nights."},
+  {name:"Hav & Mar", area:"Chelsea", cuisine:"Afro-Scandinavian Seafood", platform:"Resy", advance:30, time:"10:00 AM ET", diff:3, note:"Marcus Samuelsson; weeknights very gettable."},
+  {name:"Cote", area:"Flatiron", cuisine:"Korean Steakhouse", platform:"Resy", advance:30, time:"10:00 AM ET", diff:3, note:"Butcher's Feast; large parties hardest."},
+  {name:"Atomix", area:"NoMad", cuisine:"Korean Tasting", platform:"Tock", advance:30, time:"Monthly drop", diff:5, note:"Prepaid counter; one of the most contested seats in NYC."}
+];
+
+/* ---------- Render restaurant list ---------- */
+const restoList = document.getElementById('restoList');
+const searchEl = document.getElementById('search');
+const platformEl = document.getElementById('platform');
+const sortEl = document.getElementById('sort');
+
+function dots(n){ return "●".repeat(n) + "<span style='color:#3a3120'>" + "●".repeat(5-n) + "</span>"; }
+
+function renderRestos(){
+  const q = searchEl.value.trim().toLowerCase();
+  const pf = platformEl.value;
+  let list = RESTAURANTS.filter(r=>{
+    const hay = (r.name+" "+r.cuisine+" "+r.area+" "+r.platform).toLowerCase();
+    return (!q || hay.includes(q)) && (!pf || r.platform===pf);
+  });
+  list.sort((a,b)=> sortEl.value==='name' ? a.name.localeCompare(b.name) : b.diff-a.diff);
+
+  restoList.innerHTML = list.length ? "" : "<p style='color:var(--muted)'>No matches — try a broader search.</p>";
+  list.forEach(r=>{
+    const el = document.createElement('div');
+    el.className='resto';
+    el.innerHTML = `
+      <div>
+        <div class="name">${r.name}</div>
+        <div class="meta">${r.cuisine} · ${r.area}</div>
+        <div><span class="pill">${r.platform}</span>${r.advance?`<span class="pill">${r.advance} days out</span>`:""}</div>
+      </div>
+      <div class="difficulty">Difficulty<br><span class="dots">${dots(r.diff)}</span></div>
+      <div class="drop">${r.time}<small>${r.note}</small></div>
+      <div class="actcell"><button class="btn sm" data-name="${r.name.replace(/"/g,'&quot;')}">Set reminder ▸</button></div>
+    `;
+    el.querySelector('button').addEventListener('click',()=>{
+      document.getElementById('rRestaurant').value = r.name;
+      prefillFromRestaurant(r);
+      document.querySelector('#rDateTime').scrollIntoView({behavior:'smooth',block:'center'});
+      document.getElementById('rDateTime').focus();
+    });
+    restoList.appendChild(el);
+  });
+}
+searchEl.addEventListener('input',renderRestos);
+platformEl.addEventListener('change',renderRestos);
+sortEl.addEventListener('change',renderRestos);
+renderRestos();
+
+/* ---------- Populate reminder dropdown ---------- */
+const rRestaurant = document.getElementById('rRestaurant');
+rRestaurant.innerHTML = `<option value="">— Custom / type your own —</option>` +
+  RESTAURANTS.map(r=>`<option value="${r.name.replace(/"/g,'&quot;')}">${r.name}</option>`).join('');
+
+function nextDropDate(r){
+  // Suggest the next sensible local datetime for the drop based on the venue's release time.
+  const d = new Date();
+  d.setDate(d.getDate()+1);
+  let h=10,m=0;
+  if(r && r.time){
+    if(/12:00 AM/.test(r.time)){h=0;m=0;}
+    else if(/9:00 AM/.test(r.time)){h=9;m=0;}
+    else if(/10:00 AM/.test(r.time)){h=10;m=0;}
+  }
+  d.setHours(h,m,0,0);
+  // local-datetime string
+  const off=d.getTimezoneOffset();
+  return new Date(d.getTime()-off*60000).toISOString().slice(0,16);
+}
+function prefillFromRestaurant(r){
+  document.getElementById('rDateTime').value = nextDropDate(r);
+}
+rRestaurant.addEventListener('change',()=>{
+  const r = RESTAURANTS.find(x=>x.name===rRestaurant.value);
+  if(r) prefillFromRestaurant(r);
+});
+// default datetime
+document.getElementById('rDateTime').value = nextDropDate(null);
+
+/* ---------- Reminder engine ---------- */
+const KEY='nyc_resv_reminders_v1';
+const status = document.getElementById('status');
+let reminders = JSON.parse(localStorage.getItem(KEY) || "[]");
+
+function save(){ localStorage.setItem(KEY, JSON.stringify(reminders)); }
+
+function pad(n){return String(n).padStart(2,'0');}
+function fmt(ts){
+  const d=new Date(ts);
+  return d.toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+}
+
+function icsFor(rem){
+  const dt = new Date(rem.openTs);
+  const start = dt.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const endD = new Date(dt.getTime()+15*60000);
+  const end = endD.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const stamp = new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const lead = rem.lead;
+  return [
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//NYC Reservation Hunter//EN",
+    "BEGIN:VEVENT",
+    "UID:"+rem.id+"@nyc-resv-hunter",
+    "DTSTAMP:"+stamp,
+    "DTSTART:"+start,
+    "DTEND:"+end,
+    "SUMMARY:Reservation drop — "+rem.title,
+    "DESCRIPTION:Booking window opens. Be logged in and ready to book the second it opens.",
+    "BEGIN:VALARM","TRIGGER:-PT"+lead+"M","ACTION:DISPLAY",
+    "DESCRIPTION:Reservation drop for "+rem.title+" in "+lead+" min","END:VALARM",
+    "END:VEVENT","END:VCALENDAR"
+  ].join("\r\n");
+}
+function downloadICS(rem){
+  const blob = new Blob([icsFor(rem)],{type:'text/calendar'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(rem.title.replace(/[^a-z0-9]+/gi,'_'))+'_reservation.ics';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function ckTotals(rem){
+  const total=CHECKLIST.reduce((n,g)=>n+g.items.length,0);
+  const done=Object.values(rem.ck||{}).filter(Boolean).length;
+  return {total,done,pct:total?Math.round(done/total*100):0};
+}
+function buildChecklist(rem){
+  const box=document.createElement('div');
+  box.className='rem-ck';
+  box.hidden=true;
+  const t=ckTotals(rem);
+  const bar=document.createElement('div');
+  bar.className='ck-bar';
+  bar.innerHTML=`<div class="ck-track"><div class="ck-fill"></div></div>
+    <span class="ck-pct">${t.pct}%</span>
+    <button class="btn ghost sm" data-ckreset>Reset checklist</button>`;
+  box.appendChild(bar);
+  const grid=document.createElement('div');
+  grid.className='checklist';
+  CHECKLIST.forEach((grp,gi)=>{
+    const g=document.createElement('div');
+    g.className='ck-group';
+    g.innerHTML=`<h3>${grp.g}</h3>`;
+    grp.items.forEach((txt,ii)=>{
+      const id=gi+'-'+ii;
+      const lab=document.createElement('label');
+      lab.className='ck-item';
+      lab.innerHTML=`<input type="checkbox" ${rem.ck&&rem.ck[id]?'checked':''}><span>${txt}</span>`;
+      lab.querySelector('input').addEventListener('change',e=>{
+        rem.ck=rem.ck||{};
+        rem.ck[id]=e.target.checked;
+        save();
+        const tt=ckTotals(rem);
+        bar.querySelector('.ck-fill').style.width=tt.pct+'%';
+        bar.querySelector('.ck-pct').textContent=tt.pct+'%';
+        const tog=box.parentElement.querySelector('.ck-toggle');
+        if(tog) tog.textContent='Checklist '+tt.done+'/'+tt.total;
+      });
+      g.appendChild(lab);
+    });
+    grid.appendChild(g);
+  });
+  box.appendChild(grid);
+  bar.querySelector('.ck-fill').style.width=t.pct+'%';
+  bar.querySelector('[data-ckreset]').addEventListener('click',()=>{
+    rem.ck={}; save(); renderReminders();
+  });
+  return box;
+}
+function renderReminders(){
+  const wrap=document.getElementById('reminderList');
+  if(!reminders.length){ wrap.innerHTML="<p style='color:var(--muted)'>No reminders yet — set one above.</p>"; return; }
+  reminders.sort((a,b)=>a.fireTs-b.fireTs);
+  wrap.innerHTML="";
+  reminders.forEach(rem=>{
+    const t=ckTotals(rem);
+    const el=document.createElement('div');
+    el.className='rem'+(rem.fired?' fired':'');
+    const top=document.createElement('div');
+    top.className='rem-top';
+    top.innerHTML=`
+      <div>
+        <div style="font-weight:700;font-size:16px">${rem.title}</div>
+        <div class="when">Window opens ${fmt(rem.openTs)} · alert ${rem.lead} min before</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="cd" data-cd="${rem.fireTs}">—</span>
+        <button class="ck-toggle">Checklist ${t.done}/${t.total}</button>
+        <button class="btn ghost sm" data-ics>Add to calendar</button>
+        <button class="x" title="Delete">✕</button>
+      </div>`;
+    const ck=buildChecklist(rem);
+    top.querySelector('.ck-toggle').addEventListener('click',()=>{ ck.hidden=!ck.hidden; });
+    top.querySelector('[data-ics]').addEventListener('click',()=>downloadICS(rem));
+    top.querySelector('.x').addEventListener('click',()=>{
+      reminders=reminders.filter(x=>x.id!==rem.id); save(); renderReminders();
+    });
+    el.appendChild(top);
+    el.appendChild(ck);
+    wrap.appendChild(el);
+  });
+}
+
+document.getElementById('addReminder').addEventListener('click',async()=>{
+  const sel = rRestaurant.value;
+  const title = sel || prompt("Restaurant name for this reminder:") || "Untitled reservation";
+  const dtVal = document.getElementById('rDateTime').value;
+  if(!dtVal){ status.textContent="Pick the date & time the booking window opens."; return; }
+  const lead = parseInt(document.getElementById('rLead').value,10);
+  const openTs = new Date(dtVal).getTime();
+  const fireTs = openTs - lead*60000;
+  if(fireTs < Date.now()-60000){
+    status.textContent="That alert time is already in the past — pick a later window.";
+    return;
+  }
+  if('Notification' in window && Notification.permission==='default'){
+    try{ await Notification.requestPermission(); }catch(e){}
+  }
+  reminders.push({id:'r'+Date.now(), title, openTs, fireTs, lead, fired:false, ck:{}});
+  save(); renderReminders();
+  status.textContent = `Reminder set for “${title}” — you’ll be alerted ${fmt(fireTs)}.`;
+});
+
+/* ---------- Bulk reminder actions ---------- */
+function vevent(rem){
+  const dt=new Date(rem.openTs);
+  const Z=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  return [
+    "BEGIN:VEVENT",
+    "UID:"+rem.id+"@nyc-resv-hunter",
+    "DTSTAMP:"+Z(new Date()),
+    "DTSTART:"+Z(dt),
+    "DTEND:"+Z(new Date(dt.getTime()+15*60000)),
+    "SUMMARY:Reservation drop — "+rem.title,
+    "DESCRIPTION:Booking window opens. Be logged in and ready to book the second it opens.",
+    "BEGIN:VALARM","TRIGGER:-PT"+rem.lead+"M","ACTION:DISPLAY",
+    "DESCRIPTION:Reservation drop for "+rem.title+" in "+rem.lead+" min","END:VALARM",
+    "END:VEVENT"
+  ].join("\r\n");
+}
+function blobDownload(text,filename){
+  const blob=new Blob([text],{type:'text/calendar'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+  URL.revokeObjectURL(a.href);
+}
+document.getElementById('exportAll').addEventListener('click',()=>{
+  if(!reminders.length){ status.textContent="No reminders to export yet."; return; }
+  const cal=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//NYC Reservation Hunter//EN"]
+    .concat(reminders.map(vevent)).concat(["END:VCALENDAR"]).join("\r\n");
+  blobDownload(cal,"nyc_reservation_drops.ics");
+  status.textContent=`Exported ${reminders.length} reminder(s) to nyc_reservation_drops.ics.`;
+});
+document.getElementById('clearFired').addEventListener('click',()=>{
+  const before=reminders.length;
+  reminders=reminders.filter(r=>!r.fired); save(); renderReminders();
+  status.textContent=(before-reminders.length)+" fired reminder(s) cleared.";
+});
+
+/* ---------- Game-day checklist ---------- */
+const CHECKLIST=[
+  {g:"24 hours before",items:[
+    "Confirm the exact release: days-in-advance + drop time + platform",
+    "Account created, profile complete, credit card saved on file",
+    "Decide party size, target date, and 2–3 backup time slots",
+    "Turn on Resy Notify / Tock & SevenRooms waitlists as backup"
+  ]},
+  {g:"5 minutes before",items:[
+    "Log in on two devices (phone app + desktop browser)",
+    "Open the venue's booking page; pre-select party size & date",
+    "Sync your clock to time.gov so you fire at the exact second",
+    "Close other tabs/apps; check connection is solid"
+  ]},
+  {g:"At the drop",items:[
+    "Refresh at T-minus ~5 seconds — not after the window opens",
+    "Grab any available slot first; adjust time afterward",
+    "Complete checkout fast; don't deliberate on the confirm screen",
+    "Release the second device the instant one booking confirms"
+  ]},
+  {g:"If you miss it",items:[
+    "Join the waitlist and set a notify alert immediately",
+    "Check back 24–48h before service for released cancellations",
+    "Plan to walk in at opening for bar / counter seating"
+  ]}
+];
+/* (Checklist now lives per-reminder — see buildChecklist/renderReminders.) */
+
+/* ---------- Atomic clock sync widget ---------- */
+/* skewMs = trueTime - deviceTime. Estimated from a CORS time API,
+   compensating for round-trip latency (half RTT). */
+let skewMs=0, synced=false;
+const tEl=document.getElementById('clockTime');
+const dEl=document.getElementById('clockDate');
+const offEl=document.getElementById('clockOffset');
+const stEl=document.getElementById('clockStatus');
+
+const TIME_APIS=[
+  {url:"https://worldtimeapi.org/api/timezone/Etc/UTC",
+   get:async r=>new Date((await r.json()).utc_datetime).getTime()},
+  {url:"https://timeapi.io/api/Time/current/zone?timeZone=Etc/UTC",
+   get:async r=>{const h=r.headers.get("date");return h?Date.parse(h):NaN;}}
+];
+
+async function syncClock(){
+  stEl.textContent="Contacting time server…";
+  for(const api of TIME_APIS){
+    try{
+      const t0=Date.now();
+      const res=await fetch(api.url,{cache:"no-store"});
+      const t1=Date.now();
+      const server=await api.get(res);
+      if(!server||isNaN(server)) continue;
+      const rtt=t1-t0;
+      skewMs=server+Math.round(rtt/2)-t1;   // true - device
+      synced=true;
+      const secs=skewMs/1000;
+      const mag=Math.abs(secs);
+      offEl.className='clock-offset '+(mag<1?'ok':(mag<5?'':'warn'));
+      offEl.innerHTML="Device clock offset: <b>"+
+        (Math.abs(skewMs)<50?"in sync (±0.0s)":
+         (secs>0?"running "+mag.toFixed(1)+"s SLOW":"running "+mag.toFixed(1)+"s FAST"))+"</b>";
+      stEl.textContent="Synced via "+new URL(api.url).host+
+        " · RTT "+rtt+"ms · fire at the second the window opens";
+      return;
+    }catch(e){ /* try next */ }
+  }
+  synced=false;
+  offEl.className='clock-offset warn';
+  offEl.innerHTML="Device clock offset: <b>unavailable offline</b>";
+  stEl.textContent="Couldn't reach a time server — open time.gov to verify manually.";
+}
+function paintClock(){
+  const now=new Date(Date.now()+(synced?skewMs:0));
+  const opt={timeZone:"America/New_York",hour12:false};
+  tEl.textContent=now.toLocaleTimeString("en-US",{...opt,hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  dEl.textContent=now.toLocaleDateString("en-US",{...opt,weekday:"long",month:"long",day:"numeric"})
+    +(synced?"":" · device clock (unsynced)");
+}
+document.getElementById('resync').addEventListener('click',syncClock);
+setInterval(paintClock,250);
+paintClock(); syncClock();
+
+/* ---------- Tick: countdowns + firing ---------- */
+function fire(rem){
+  rem.fired=true; save(); renderReminders();
+  const msg = `⏰ Reservation drop: ${rem.title}\nBooking window opens ${fmt(rem.openTs)}. Get logged in now!`;
+  if('Notification' in window && Notification.permission==='granted'){
+    new Notification("Reservation drop — "+rem.title,{body:"Window opens "+fmt(rem.openTs)+". Be ready to book."});
+  }
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=880;
+    g.gain.setValueAtTime(.0001,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.25,ctx.currentTime+.05);
+    g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+1.2);
+    o.start();o.stop(ctx.currentTime+1.2);
+  }catch(e){}
+  setTimeout(()=>alert(msg),50);
+}
+function trueNow(){ return Date.now()+(synced?skewMs:0); }
+function tick(){
+  const now=trueNow();
+  document.querySelectorAll('[data-cd]').forEach(span=>{
+    const t=parseInt(span.dataset.cd,10);
+    let diff=t-now;
+    if(diff<=0){ span.textContent="now / done"; return; }
+    const d=Math.floor(diff/86400000); diff-=d*86400000;
+    const h=Math.floor(diff/3600000); diff-=h*3600000;
+    const m=Math.floor(diff/60000); diff-=m*60000;
+    const s=Math.floor(diff/1000);
+    span.textContent=(d?d+"d ":"")+pad(h)+":"+pad(m)+":"+pad(s);
+  });
+  reminders.forEach(r=>{ if(!r.fired && now>=r.fireTs) fire(r); });
+}
+setInterval(tick,1000);
+renderReminders(); tick();
+</script>
+</body>
+</html>
